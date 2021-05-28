@@ -14,5 +14,9 @@ colorama >= 0.4.4
 ```
 
 ## Screenshots
+<p align="center">
+
 ![Screenshot_1](Screenshots/Screenshot_1.jpg)
 ![Screenshot_2](Screenshots/Screenshot_2.jpg)
+
+</p>
