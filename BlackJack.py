@@ -572,7 +572,7 @@ def game():
 
     ui = UserInterface()
 
-    ui.set_con_title('BlackJack Game')
+    ui.set_con_title(f'{__title__} v{__version__}')
 
     ui.title = f'''{colorama.Fore.GREEN}
  888888b.   888                   888   888888                   888
