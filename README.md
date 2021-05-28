@@ -1,6 +1,6 @@
 <h1 align="center">BlackJack</h1>
 
-<center>A Python implementation of BlackJack with CUI.</center>
+<p align="center">A Python implementation of BlackJack with CUI.</p>
 
 ## Usage
 ```
