@@ -3,7 +3,7 @@ BlackJack Game
 A python implementation of BlackJack.
 :Project URL: https://github.com/nknantha/BlackJack
 :Author: nknantha<nknanthakumar13@gmail.com>
-:Date: 28-05-2021
+:Date: 02-06-2021
 """
 
 import colorama
@@ -748,4 +748,7 @@ if __name__ == '__main__':
     __version__ = '1.0'
     __author__ = 'nknantha'
 
-    game()
+    if 'idlelib' in _sys.modules:  # To detect IDLE environment
+        print("IDLE environment detected. This script can't work on IDLE.")
+    else:
+        game()
