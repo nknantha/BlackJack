@@ -3,7 +3,7 @@ BlackJack Game
 A python implementation of BlackJack.
 :Project URL: https://github.com/nknantha/BlackJack
 :Author: nknantha<nknanthakumar13@gmail.com>
-:Date: 02-06-2021
+:Date: 26-06-2021
 """
 
 import colorama
@@ -16,31 +16,42 @@ colorama.init()
 
 
 class Card:
+    __slots__ = '__rank', '__suit', '__value'
+
     def __init__(self, rank, suit, value):
-        self.rank = rank
-        self.suit = suit
-        self.value = value
+        self.__rank = rank
+        self.__suit = suit
+        self.__value = value
+
+    @property
+    def rank(self):
+        return self.__rank
+
+    @property
+    def suit(self):
+        return self.__suit
+
+    @property
+    def value(self):
+        return self.__value
 
     def __str__(self):
         return f'{self.rank} of {self.suit}'
 
 
 class Deck:
-    # Private for inside only use
-    __SUITS = ('Spade', 'Clover', 'Diamond', 'Heart')
-    __RANKS = ('A', '2', '3', '4', '5', '6',
-               '7', '8', '9', '10', 'J', 'Q', 'K')
+    __slots__ = '__deck', '__rdeck', 'count'
 
     def __init__(self, count=1):
-        if count < 1:  # Handling Negetives and Zero
+        if count < 1:  # Handling Negatives and Zero
             raise ValueError('Atleast 1 deck needed to play')
 
         self.__deck = []
         self.__rdeck = []
-        self.count = count
 
-        for suit in self.__SUITS:
-            for rank in self.__RANKS:
+        for suit in ('Spade', 'Clover', 'Diamond', 'Heart'):
+            for rank in ('A', '2', '3', '4', '5', '6', '7', '8',
+                         '9', '10', 'J', 'Q', 'K'):
                 if rank.isdecimal():
                     value = int(rank)
                 elif rank == 'A':
@@ -49,7 +60,7 @@ class Deck:
                     value = 10
                 self.__deck.append(Card(rank, suit, value))
 
-        self.__deck *= self.count
+        self.__deck *= count
         random_shuffle(self.__deck)  # Shuffling at creation
 
     def get_card(self):
@@ -71,13 +82,16 @@ class Deck:
 
 
 class Hand:
+    __slots__ = 'count', 'bet', 'cards', 'value', '__aces', 'status'
+
     def __init__(self, bet, count=0):
         self.count = count
         self.bet = bet
         self.cards = []
         self.value = 0
         self.__aces = 0
-        self.status = 'Live'  # Live, BlackJack, Bust, Stand, Double, Surrender, Win, Lost, -, Push
+        self.status = 'Live'
+        # Live, BlackJack, Bust, Stand, Double, Surrender, Win, Lost, -, Push
 
     def __calibrate(self):
         value = 0
@@ -117,9 +131,11 @@ class Hand:
 
 
 class Player:
+    __slots__ = 'name', 'balance', 'hands'
+
     def __init__(self, name, balance=1000):
         if balance < 0:
-            raise ValueError('Balance should not be negetive.')
+            raise ValueError('Balance should not be negative.')
 
         self.name = name
         self.balance = balance
@@ -138,6 +154,8 @@ class Player:
 
 
 class Dealer:
+    __slots__ = 'name', 'hand'
+
     def __init__(self):
         self.name = 'Dealer'
         self.hand = None
@@ -147,15 +165,18 @@ class Dealer:
 
 
 class UserInterface:
+    __slots__ = ('__title_art', '__title_max_len', '__rule_art', '__lines',
+                 'round_count', 'deck_count')
+
     # ASCII Escape Sequences
     ERASE_LINE = '\x1b[2K'
     CURSOR_UP = '\x1b[1A'
     CARRIAGE_RETURN = '\x0D'
 
-    F_RESET = colorama.Fore.RESET
     # Color Configuration for entire game
-    VB = f'{colorama.Fore.BLUE}|{colorama.Fore.RESET}'
+    F_RESET = colorama.Fore.RESET
     COLOR = {
+        'BAR': colorama.Fore.BLUE,
         'Live': colorama.Fore.CYAN,
         'BlackJack': colorama.Fore.GREEN,
         'Bust': colorama.Fore.RED,
@@ -172,20 +193,39 @@ class UserInterface:
         'L': colorama.Fore.BLUE,
         'R': colorama.Fore.RED,
     }
+    VB = f"{COLOR['BAR']}|{F_RESET}"
 
-    def __init__(self, title=''):
-        self.title = title
+    def __init__(self, title_art='', rule_art=''):
+        self.__title_art = title_art
+        self.__title_max_len = max(map(len, title_art.splitlines()))
+        self.__rule_art = self.__align_w_title(rule_art)
         self.__lines = 0
         self.round_count = 0
         self.deck_count = 0
+
         self.print(colorama.Style.BRIGHT)
         self.clear()
+
+    def __align_w_title(self, string):
+        if len(string) == 0 or self.__title_max_len == 0:
+            raise ValueError('title or given string have 0 length')
+
+        if not string.startswith('\n'):
+            string = '\n' + string
+
+        string_split = string.splitlines()
+        string_max = max(map(len, string_split))
+
+        filler = '\n' + ' ' * (abs(self.__title_max_len - string_max) // 2)
+        string = filler.join(string_split)
+        return string
 
     def __dealer_stats(self, dealer, hide=True):
         string = "\n Dealer's Hand:"
 
         if hide:
-            val_str = '1/11' if dealer.hand.cards[0].rank == 'A' else str(dealer.hand.cards[0].value)
+            val_str = '1/11' if dealer.hand.cards[0].rank == 'A' \
+                else str(dealer.hand.cards[0].value)
             sts_str = 'Stand'
         else:
             val_str = dealer.hand.approx_val()
@@ -231,7 +271,7 @@ class UserInterface:
         sts_line = f" {self.VB} {('Status: ' + sts_str).center(max_width)} {self.VB}"
         string += f"\n{self.__wrap_word(sts_line, sts_str)}"
 
-        # Seperator Line
+        # Separator Line
         string += f"\n{h_bar}"
 
         # Cards Lines
@@ -240,8 +280,8 @@ class UserInterface:
             card2 = f"\n {self.VB} {'<-Hidden Card->'.center(max_width)} {self.VB}"
             string += card1 + card2
         else:
-            for card in dealer.hand.cards:
-                string += f"\n {self.VB} {str(card).center(max_width)} {self.VB}"
+            string += ''.join(f"\n {self.VB} {str(card).center(max_width)} {self.VB}"
+                              for card in dealer.hand.cards)
 
         # End Line
         string += f"\n{h_bar}"
@@ -300,36 +340,20 @@ class UserInterface:
         # First Line
         string += f"\n{h_bar}"
 
-        # Hand Line
-        hand_line = f' {self.VB}'
+        # Hand, Bet, Value, Status Lines
+        hand_line = bet_line = val_line = sts_line = f' {self.VB}'
         for i in range(len(player.hands)):
-            hand_str = f"Hand {player.hands[i].count}:".center(max_width[i])
-            hand_line += f" {hand_str} {self.VB}"
-        string += f"\n{hand_line}"
-
-        # Bet Line
-        bet_line = f' {self.VB}'
-        for i in range(len(player.hands)):
+            hand_str = f"Hand: {player.hands[i].count}".center(max_width[i])
             bet_str = f"Bet: {player.hands[i].bet}".center(max_width[i])
-            bet_line += f" {bet_str} {self.VB}"
-        string += f"\n{bet_line}"
-
-        # Value Line
-        val_line = f' {self.VB}'
-        for i in range(len(player.hands)):
             val_str = f"Value: {player.hands[i].approx_val()}".center(max_width[i])
-            val_line += f" {val_str} {self.VB}"
-        string += f"\n{val_line}"
-
-        # Status Line
-        sts_line = f' {self.VB}'
-        for i in range(len(player.hands)):
             sts_str = f"Status: {player.hands[i].status}".center(max_width[i])
-            sts_line += f" {self.__wrap_word(sts_str, player.hands[i].status)} {self.VB}"
-        string += f"\n{sts_line}"
 
-        # Seperator Line
-        string += f"\n{h_bar}"
+            hand_line += f" {hand_str} {self.VB}"
+            bet_line += f" {bet_str} {self.VB}"
+            val_line += f" {val_str} {self.VB}"
+            sts_line += f" {self.__wrap_word(sts_str, player.hands[i].status)} {self.VB}"
+
+        string += f"\n{hand_line}\n{bet_line}\n{val_line}\n{sts_line}\n{h_bar}"
 
         # Cards List
         for i in range(max_cards):
@@ -368,8 +392,7 @@ class UserInterface:
         return string + ' ]'
 
     def __wrap_hb(self, hb):
-        color = colorama.Fore.BLUE
-        return color + hb + self.F_RESET
+        return self.COLOR['BAR'] + hb + self.F_RESET
 
     def __wrap_word(self, string, word):
         color = self.COLOR.get(word)
@@ -397,7 +420,8 @@ class UserInterface:
         minimum, multiples = 10, 2
 
         self.print(f' {player.name} -> [Balance: {player.balance}]')
-        prompt_label = f' {player.name} -> Enter bet [Min: {minimum}, Max: {maximum}, x{multiples}]: '
+        prompt_label = f' {player.name} -> Enter bet [Min: {minimum}, ' \
+                       f'Max: {maximum}, x{multiples}]: '
         while True:
             amount = self.get_int(prompt_label, minimum, maximum, multiples)
             if player.have_bal(amount):
@@ -469,7 +493,7 @@ class UserInterface:
         self.print(string)
 
     def print_title(self):
-        self.print(self.title)
+        self.print(self.__title_art)
 
     def set_con_title(self, string):
         self.print(f'\x1b]2;{string}\x07')
@@ -491,6 +515,12 @@ class UserInterface:
         # Manual handling because of __line_counter stripping the carriage return
         print(self.ERASE_LINE + self.CARRIAGE_RETURN + label)
         self.__lines += 1
+
+    def welcome_greet(self):
+        self.print_title()
+        self.print(self.__rule_art)
+        self.input(self.__align_w_title('Press [Enter] to Start Game... '))
+        self.clear()
 
 
 def double_down(player, hand, card):
@@ -524,24 +554,6 @@ def hand_options(player, hand):
     return def_options
 
 
-def rules_display(ui, rules):
-    rules_split = rules.splitlines()
-    title_max = max(map(len, ui.title.splitlines()))
-    rules_max = max(map(len, rules_split))
-
-    filler = '\n' + ' ' * (abs(title_max - rules_max) // 2)
-    rules = filler.join(rules_split)
-
-    ui.print_title()
-    ui.print(rules)
-
-    label = 'Press [Enter] to Start Game... '
-    filler = '\n' + ' ' * (abs(title_max - len(label) - 1) // 2)
-    label = filler + label
-    ui.input(label)
-    ui.clear()
-
-
 def split(player, hand, h_card1, h_card2):
     if hand in player.hands and len(hand.cards) == 2 and len(player.hands) < 4:
         card = hand.pop_card()
@@ -564,32 +576,36 @@ def surrender(player, hand):
 
 
 def exit_handl(signal, frame):
-    print(f'\n\n{colorama.Fore.RED} Ctrl + C triggered, Exitting Game...')
+    print(f'\n\n{colorama.Fore.RED} Ctrl + C triggered, Exiting Game...\n')
     _sys.exit()
 
 
 def game():
+    _sig.signal(_sig.SIGINT, exit_handl)
+    __title__ = 'BlackJack'
+    __version__ = '1.1'
+    __author__ = 'nknantha'
 
-    ui = UserInterface()
+    if 'idlelib' in _sys.modules:  # To detect IDLE environment
+        print("IDLE environment detected. This script can't work on IDLE.")
+        _sys.exit()
 
-    ui.set_con_title(f'{__title__} v{__version__}')
-
-    ui.title = f'''{colorama.Fore.GREEN}
- 888888b.   888                   888   888888                   888
- 888  "88b  888                   888     "88b                   888
- 888  .88P  888                   888      888                   888
- 8888888K.  888  8888b.   .d8888b 888  888 888  8888b.   .d8888b 888  888
- 888  "Y88b 888     "88b d88P"    888 .88P 888     "88b d88P"    888 .88P
- 888    888 888 .d888888 888      888888K  888 .d888888 888      888888K
- 888   d88P 888 888  888 Y88b.    888 "88b 88P 888  888 Y88b.    888 "88b
- 8888888P"  888 "Y888888  "Y8888P 888  888 888 "Y888888  "Y8888P 888  888
-                                         .d88P
- .d8888    .d8b.  .d8   8b. .d888.    .d88P"
- 88   db. 8b._.d8 88 "8" 88 888      888P"
- "Y888P"  88   88 88     88 "Y888"  {colorama.Fore.BLUE}https://github.com/nknantha/BlackJack
+    g_title = f'''{colorama.Fore.GREEN}
+ 2121212b.   212                   212   212121                   212
+ 212   "21b  212                   212     "212                   212
+ 212   .21P  212                   212      212                   212
+ 21212121K.  212  2121b.   .d2121b 212  212 212  2121b.   .d2121b 212  212
+ 212   "Y21b 212     "21b d21P"    212 .21P 212     "21b d21P"    212 .21P
+ 212     212 212 .d212121 212      212121K  212 .d212121 212      212121K
+ 212    d21P 212 212  212 Y21b.    212 "21b 21P 212  212 Y21b.    212 "21b
+ 21212121P"  212 "Y212121  "Y2121P 212  212 212 "Y212121  "Y2121P 212  212
+                                         .d21P
+ .d212b    .d2b.  .d2   2b. .d212.    .d21P"
+ 21   db. 2b._.d2 21 "2" 21 212      212P"
+ "Y212P"  28   82 21     21 "Y212"  {colorama.Fore.BLUE}https://github.com/nknantha/BlackJack
 {colorama.Fore.RESET}'''
-    game_rules = f'''{colorama.Fore.CYAN}
-Rules:
+
+    g_rules = f'''{colorama.Fore.CYAN}Rules:
  - BlackJack pays 3:2
  - Split allowed, Re-split upto 3 hands
  - Splitted hands only allowed hit or stand
@@ -602,16 +618,17 @@ Tips:
  - Use CTRL + C to exit game during gameplay
 {colorama.Fore.WHITE}'''
 
-    # Rules Display & Confirmation
-    rules_display(ui, game_rules)
+    ui = UserInterface(g_title, g_rules)
+    ui.set_con_title(f'{__title__} v{__version__}')
+
+    # Welcome Screen
+    ui.welcome_greet()
 
     ui.print_title()
-
     ui.deck_count = ui.get_int('Deck Count', 1, 8)
     deck = Deck(ui.deck_count)
 
-    players = [Player(ui.get_name(i+1)) for i in range(ui.get_int('Player Count', 1, 7))]
-
+    players = [Player(ui.get_name(i + 1)) for i in range(ui.get_int('Player Count', 1, 7))]
     dealer = Dealer()
 
     while True:  # Gameplay Loop
@@ -660,7 +677,8 @@ Tips:
         ui.tell_info(f"\n {colorama.Fore.GREEN}Dealer's Gameplay...{ui.F_RESET}")
 
         # Dealer Gameplay
-        hand_values = [hand.value for player in players for hand in player.hands if hand.value < 22]
+        hand_values = [hand.value for player in players for hand in player.hands
+                       if hand.value < 22]
         if hand_values:  # Checking if dealer needs to play
             player_max = max(hand_values)
             while dealer.hand.value < 18 and dealer.hand.value < player_max:
@@ -722,33 +740,21 @@ Tips:
 
         # Checking for betting capacity
         ui.print()
-        is_removed = False
         for player in players[:]:
             if not player.have_bal(10):  # Checking minimum balance
                 ui.print(f' {colorama.Fore.RED}Player {player.name} '
                          f'kicked, having below minimum balance.{ui.F_RESET}')
                 players.remove(player)
-                is_removed = True
-
-        if is_removed:
-            ui.tell_info('\n Going to next round...')
 
         # Changing players order and Gameplay exit
         if players:
             if len(players) > 1:
                 players = players[1:] + players[:1]
+            ui.tell_info('\n Going to next round...')
         else:
-            ui.tell_info(f'\n {colorama.Fore.RED}All players left, exitting game...')
+            ui.tell_info(f'\n {colorama.Fore.RED}All players left, Exiting game...')
             break
 
 
 if __name__ == '__main__':
-    _sig.signal(_sig.SIGINT, exit_handl)
-    __title__ = 'BlackJack'
-    __version__ = '1.0'
-    __author__ = 'nknantha'
-
-    if 'idlelib' in _sys.modules:  # To detect IDLE environment
-        print("IDLE environment detected. This script can't work on IDLE.")
-    else:
-        game()
+    game()
