@@ -6,10 +6,16 @@ A Python implementation of BlackJack with CUI.
 
 ## Usage
 ```
-# To install requirements
+# Clone this repo
+git clone "https://github.com/nknantha/BlackJack.git"
+
+# Change directory
+cd BlackJack
+
+# Install requirements
 python3 -m pip install -r requirements.txt
 
-# To run
+# Run
 python3 BlackJack.py
 
 # On Windows use "python" instead of "python3"
