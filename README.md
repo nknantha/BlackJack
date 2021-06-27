@@ -15,8 +15,7 @@ python3 BlackJack.py
 # On Windows use "python" instead of "python3"
 ```
 <p align="center">
-<a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fnknantha%2FBlackJack&cloudshell_tutorial=README.md"
-target="_blank" rel="noopener noreferrer">
+<a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fnknantha%2FBlackJack&cloudshell_tutorial=README.md&shellonly=true">
 <img alt="Open in Cloud Shell" src="https://gstatic.com/cloudssh/images/open-btn.svg"></a>
 </p>
 
